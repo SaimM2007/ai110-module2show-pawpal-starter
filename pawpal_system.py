@@ -6,7 +6,7 @@ pawpal_system.py
 from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List
 import uuid
 
 
@@ -26,16 +26,18 @@ class Task:
     task_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     pet_id: str = ""
 
-    def mark_complete(self) -> None:
-        """Mark this task as done."""
+    def mark_complete(self, pet: Optional[Pet] = None, scheduler: Optional[Scheduler] = None) -> None:
+        """Mark this task as done and auto-generate next occurrence if recurring."""
         self.is_completed = True
+        if self.is_recurring and pet is not None and scheduler is not None:
+            scheduler.add_recurring_tasks(pet)
 
     def reschedule(self, new_time: datetime) -> None:
         """Move the task to a new time."""
         self.scheduled_time = new_time
 
     def generate_next_occurrence(self) -> Optional[Task]:
-        """Return a new Task shifted by recurrence_interval_days, or None if not recurring."""
+        """Return a new Task shifted by recurrence_interval_days using timedelta, or None if not recurring."""
         if not self.is_recurring or self.recurrence_interval_days <= 0:
             return None
         return Task(
@@ -123,8 +125,12 @@ class Scheduler:
             if not task.is_completed and task.scheduled_time.date() == today
         ]
 
+    def sort_by_time(self, tasks: list[Task]) -> list[Task]:
+        """Sort tasks chronologically by scheduled_time."""
+        return sorted(tasks, key=lambda t: t.scheduled_time)
+
     def sort_by_priority(self, tasks: list[Task]) -> list[Task]:
-        """Sort tasks: lowest priority number = highest urgency."""
+        """Sort tasks: lowest priority number = highest urgency, time as tiebreaker."""
         return sorted(tasks, key=lambda t: (t.priority, t.scheduled_time))
 
     def detect_conflicts(self, tasks: list[Task]) -> list[tuple[Task, Task]]:
@@ -142,8 +148,34 @@ class Scheduler:
         new_tasks = []
         for task in pet.tasks:
             if task.is_recurring and task.is_completed:
-                next_task = task.generate_next_occurrence()
-                if next_task:
-                    new_tasks.append(next_task)
+                next_time = task.scheduled_time + timedelta(days=task.recurrence_interval_days)
+                already_exists = any(
+                    t.title == task.title and t.scheduled_time.date() == next_time.date()
+                    for t in pet.tasks
+                )
+                if not already_exists:
+                    next_task = task.generate_next_occurrence()
+                    if next_task:
+                        new_tasks.append(next_task)
         for t in new_tasks:
             pet.add_task(t)
+
+    def filter_tasks(
+        self,
+        pet_id: Optional[str] = None,
+        status: Optional[str] = None,
+        task_type: Optional[str] = None,
+    ) -> list[Task]:
+        """Filter tasks across all pets by pet, completion status, or type.
+        status: 'complete' | 'incomplete'
+        """
+        results = [task for pet in self.pets for task in pet.tasks]
+        if pet_id:
+            results = [t for t in results if t.pet_id == pet_id]
+        if status == "complete":
+            results = [t for t in results if t.is_completed]
+        elif status == "incomplete":
+            results = [t for t in results if not t.is_completed]
+        if task_type:
+            results = [t for t in results if t.task_type == task_type]
+        return results

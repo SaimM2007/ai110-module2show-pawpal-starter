@@ -38,10 +38,16 @@ Neither of these changed the overall structure of the classes. They just filled 
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+The scheduler considers two main constraints: scheduled time and priority level. Priority was weighted above time, meaning a P1 task at 2 PM shows before a P2 task at 7 AM. I made that call because in a real context, a medication or vet appointment matters more than the exact order things happen in the day. Time should be used as a tiebreaker when priorities are equal.
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
+
+The conflict detector flags any two tasks within 15 minutes of each other regardless of how long each task actually takes. So a 5-minute medication and a 30-minute walk scheduled 14 minutes apart both get flagged the same way, even though they might not actually overlap in practice.
+
+The tradeoff is simplicity vs accuracy. Tracking actual task durations would require a duration_minutes field on every task and more complex interval math. For a basic pet care app, a flat 15-minute proximity check is good enough and avoids overcomplicating the data model. A false positive conflict warning is a much safer failure mode than missing a real one!
 
 ---
 
