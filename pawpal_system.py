@@ -1,4 +1,3 @@
-
 """
 PawPal+ System — Core Logic Layer
 pawpal_system.py
@@ -25,6 +24,7 @@ class Task:
     recurrence_interval_days: int = 0
     is_completed: bool = False
     task_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
+    pet_id: str = ""
 
     def mark_complete(self) -> None:
         """Mark this task as done."""
@@ -51,6 +51,7 @@ class Pet:
     age: int
     tasks: list[Task] = field(default_factory=list)
     pet_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
+    owner_id: str = ""
 
     def add_task(self, task: Task) -> None:
         """Attach a task to this pet."""

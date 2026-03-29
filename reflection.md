@@ -7,10 +7,27 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+My initial UML had four classes connected in a simple one-directional hierarchy.
+
+- 'Task' is a dataclass that holds all the info about a single care action, things like the title, type (feed, walk, medication, appointment), scheduled time, priority level, whether it repeats, and whether it's been completed. It also has methods to mark itself done, reschedule, and generate the next occurrence if it's recurring.
+- 'Pet' is also a dataclass and owns a list of Tasks. It handles adding and removing tasks and can return a sorted list of what's coming up next.
+- 'Owner' is a dataclass that holds a list of Pets. Its main job is grouping pets under one person and being able to pull all tasks across every pet they own.
+- 'Scheduler' is a plain class because it's pure logic with no identity of its own. It takes in a list of Pets and handles the algorithmic work: filtering tasks for today, sorting by priority, detecting scheduling conflicts, and generating next occurrences for recurring tasks.
+
+In the diagram, the relationships flow as: Owner owns Pets (one to many), Pet has Tasks (one to many), and Scheduler connects to both Pet and Task with dashed lines since it reads from them but doesn't own them.
+
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+
+After reviewing the skeleton, I noticed two missing relationships that would cause problems later.
+
+First, Task had no reference back to which pet it belonged to. So if the Scheduler ever flattens all tasks into one list, there's no way to trace a task back to its pet without looping through everything. I added a pet_id field to Task to fix that.
+
+Second, Pet had no reference back to its Owner. I added an owner_id field so that relationship is traceable in both directions when needed.
+
+Neither of these changed the overall structure of the classes. They just filled in some gaps that the UML didn't make explicit.
 
 ---
 
