@@ -2,6 +2,12 @@
 
 You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
 
+## 📸 Demo
+
+<a href="/course_images/ai110/pawpal_demo_1.png" target="_blank"><img src='/course_images/ai110/pawpal_demo_1.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+
+<a href="/course_images/ai110/pawpal_demo_2.png" target="_blank"><img src='/course_images/ai110/pawpal_demo_2.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+
 ## Scenario
 
 A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
@@ -11,6 +17,17 @@ A busy pet owner needs help staying consistent with pet care. They want an assis
 - Produce a daily plan and explain why it chose that plan
 
 Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+
+## Features
+
+- **Owner and pet management**: Register an owner and add multiple pets, each with their own task list.
+- **Task scheduling**: Add care tasks with a type, priority level, scheduled time, and optional daily recurrence.
+- **Sort by time**: View today's tasks in chronological order using `sort_by_time()`.
+- **Sort by priority**: View tasks ranked by urgency (P1 = highest) with time as a tiebreaker via `sort_by_priority()`.
+- **Conflict warnings**: The scheduler automatically flags any two tasks within 15 minutes of each other and tells you which pets are affected and when.
+- **Daily recurrence**: Marking a recurring task complete auto-generates the next occurrence for the following day using `timedelta`.
+- **Task filtering**: Filter tasks across all pets by pet, completion status, or task type using `filter_tasks()`.
+- **Interactive UI**: A Streamlit interface lets you manage everything in the browser with sort controls and real-time conflict detection.
 
 ## What you will build
 
@@ -30,6 +47,12 @@ Your final app should:
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+```
+
+### Run the app
+
+```bash
+streamlit run app.py
 ```
 
 ### Suggested workflow
@@ -68,6 +91,11 @@ The test suite has 12 tests across the following behaviors:
 All core scheduling behaviors are covered including sorting, recurrence, conflict detection, filtering, and edge cases like empty pets and no completed tasks.
 
 ---
+
+## Optional Extensions Completed
+
+- **Challenge 3: Advanced Priority Scheduling and UI** — went beyond simple time sorting by implementing priority-based scheduling where P1 tasks always appear before lower priority ones. Added color-coded priority badges (🔴 P1, 🟠 P2, 🟡 P3, 🟢 P4, ⚪ P5) to the Streamlit schedule table so urgency is visible at a glance.
+- **Challenge 4: Professional UI and Output Formatting** — added task type emojis (🦮 walk, 🍽️ feed, 💊 medication, 🏥 appointment) as color-coded status indicators throughout the UI, including the schedule table, the "Add task" success message, and the conflict warning messages. This significantly improves the readability and overall feel of the assistant.
 
 ## Smarter Scheduling
 

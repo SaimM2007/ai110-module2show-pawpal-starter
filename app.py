@@ -10,6 +10,27 @@ st.title("🐾 PawPal+")
 if "owner" not in st.session_state:
     st.session_state.owner = Owner(name="", email="")
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+# Challenge 4: Professional UI — emoji icons for each task type
+TYPE_EMOJI = {
+    "walk":        "🦮",
+    "feed":        "🍽️",
+    "medication":  "💊",
+    "appointment": "🏥",
+}
+
+# Challenge 3: Priority-based color coding — 🔴 high urgency down to ⚪ low
+PRIORITY_BADGE = {
+    1: "🔴 P1",
+    2: "🟠 P2",
+    3: "🟡 P3",
+    4: "🟢 P4",
+    5: "⚪ P5",
+}
+
 st.divider()
 
 # ---------------------------------------------------------------------------
@@ -96,7 +117,7 @@ else:
             recurrence_interval_days=1 if is_recurring else 0,
         )
         pet_options[selected_pet_name].add_task(new_task)
-        st.success(f"Task '{task_title}' added to {selected_pet_name}!")
+        st.success(f"{TYPE_EMOJI.get(task_type, '')} Task '{task_title}' added to {selected_pet_name}!")
 
 st.divider()
 
@@ -106,14 +127,24 @@ st.divider()
 
 st.subheader("Today's Schedule")
 
+sort_mode = st.radio(
+    "Sort by",
+    ["Priority (urgent first)", "Time (chronological)"],
+    horizontal=True,
+)
+
 if st.button("Generate schedule"):
     if not st.session_state.owner.pets:
         st.warning("Add a pet and some tasks first.")
     else:
         scheduler    = Scheduler(pets=st.session_state.owner.pets)
         todays_tasks = scheduler.get_tasks_for_today()
-        sorted_tasks = scheduler.sort_by_priority(todays_tasks)
         conflicts    = scheduler.detect_conflicts(todays_tasks)
+
+        if sort_mode == "Priority (urgent first)":
+            sorted_tasks = scheduler.sort_by_priority(todays_tasks)
+        else:
+            sorted_tasks = scheduler.sort_by_time(todays_tasks)
 
         if not sorted_tasks:
             st.info("No tasks scheduled for today.")
@@ -123,17 +154,26 @@ if st.button("Generate schedule"):
             for t in sorted_tasks:
                 rows.append({
                     "Time"     : t.scheduled_time.strftime("%I:%M %p"),
-                    "Priority" : t.priority,
+                    "Priority" : PRIORITY_BADGE.get(t.priority, f"P{t.priority}"),
                     "Pet"      : pet_lookup.get(t.pet_id, "Unknown"),
                     "Task"     : t.title,
-                    "Type"     : t.task_type,
-                    "Recurring": "Yes" if t.is_recurring else "No",
+                    "Type"     : f"{TYPE_EMOJI.get(t.task_type, '')} {t.task_type}",
+                    "Recurring": "✓" if t.is_recurring else "",
                 })
             st.table(rows)
+            st.success(f"{len(sorted_tasks)} task(s) scheduled for today.")
 
         if conflicts:
-            st.error(f"⚠️ {len(conflicts)} conflict(s) detected:")
+            st.error(f"⚠️ {len(conflicts)} scheduling conflict(s) detected:")
+            pet_lookup = {p.pet_id: p.name for p in st.session_state.owner.pets}
             for t1, t2 in conflicts:
-                st.write(f"  • '{t1.title}' and '{t2.title}' overlap within 15 min")
+                p1 = pet_lookup.get(t1.pet_id, "Unknown")
+                p2 = pet_lookup.get(t2.pet_id, "Unknown")
+                time_str = t1.scheduled_time.strftime("%I:%M %p")
+                st.warning(
+                    f"{TYPE_EMOJI.get(t1.task_type, '')} '{t1.title}' ({p1}) and "
+                    f"{TYPE_EMOJI.get(t2.task_type, '')} '{t2.title}' ({p2}) "
+                    f"are both scheduled around {time_str}. Consider rescheduling one."
+                )
         else:
             st.success("No scheduling conflicts.")
