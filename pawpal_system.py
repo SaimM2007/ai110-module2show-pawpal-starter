@@ -5,7 +5,7 @@ pawpal_system.py
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 import uuid
 
@@ -28,15 +28,25 @@ class Task:
 
     def mark_complete(self) -> None:
         """Mark this task as done."""
-        pass  # TODO
+        self.is_completed = True
 
     def reschedule(self, new_time: datetime) -> None:
         """Move the task to a new time."""
-        pass  # TODO
+        self.scheduled_time = new_time
 
     def generate_next_occurrence(self) -> Optional[Task]:
         """Return a new Task shifted by recurrence_interval_days, or None if not recurring."""
-        pass  # TODO
+        if not self.is_recurring or self.recurrence_interval_days <= 0:
+            return None
+        return Task(
+            title=self.title,
+            task_type=self.task_type,
+            scheduled_time=self.scheduled_time + timedelta(days=self.recurrence_interval_days),
+            priority=self.priority,
+            is_recurring=self.is_recurring,
+            recurrence_interval_days=self.recurrence_interval_days,
+            pet_id=self.pet_id,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -55,15 +65,19 @@ class Pet:
 
     def add_task(self, task: Task) -> None:
         """Attach a task to this pet."""
-        pass  # TODO
+        task.pet_id = self.pet_id
+        self.tasks.append(task)
 
     def remove_task(self, task_id: str) -> None:
         """Remove a task by its ID."""
-        pass  # TODO
+        self.tasks = [t for t in self.tasks if t.task_id != task_id]
 
     def get_upcoming_tasks(self) -> list[Task]:
         """Return incomplete tasks sorted by scheduled_time."""
-        pass  # TODO
+        return sorted(
+            [t for t in self.tasks if not t.is_completed],
+            key=lambda t: t.scheduled_time
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -79,15 +93,16 @@ class Owner:
 
     def add_pet(self, pet: Pet) -> None:
         """Register a pet under this owner."""
-        pass  # TODO
+        pet.owner_id = self.owner_id
+        self.pets.append(pet)
 
     def remove_pet(self, pet_id: str) -> None:
         """Remove a pet by its ID."""
-        pass  # TODO
+        self.pets = [p for p in self.pets if p.pet_id != pet_id]
 
     def get_all_tasks(self) -> list[Task]:
         """Gather every task across all owned pets."""
-        pass  # TODO
+        return [task for pet in self.pets for task in pet.tasks]
 
 
 # ---------------------------------------------------------------------------
@@ -100,16 +115,35 @@ class Scheduler:
 
     def get_tasks_for_today(self) -> list[Task]:
         """Return all incomplete tasks scheduled for today across all pets."""
-        pass  # TODO
+        today = datetime.now().date()
+        return [
+            task
+            for pet in self.pets
+            for task in pet.tasks
+            if not task.is_completed and task.scheduled_time.date() == today
+        ]
 
     def sort_by_priority(self, tasks: list[Task]) -> list[Task]:
         """Sort tasks: lowest priority number = highest urgency."""
-        pass  # TODO
+        return sorted(tasks, key=lambda t: (t.priority, t.scheduled_time))
 
     def detect_conflicts(self, tasks: list[Task]) -> list[tuple[Task, Task]]:
         """Find pairs of tasks with overlapping scheduled times (within 15 min)."""
-        pass  # TODO
+        conflicts = []
+        for i in range(len(tasks)):
+            for j in range(i + 1, len(tasks)):
+                diff = abs((tasks[i].scheduled_time - tasks[j].scheduled_time).total_seconds())
+                if diff < 15 * 60:
+                    conflicts.append((tasks[i], tasks[j]))
+        return conflicts
 
     def add_recurring_tasks(self, pet: Pet) -> None:
         """Scan a pet's tasks and generate the next occurrence for any recurring ones."""
-        pass  # TODO
+        new_tasks = []
+        for task in pet.tasks:
+            if task.is_recurring and task.is_completed:
+                next_task = task.generate_next_occurrence()
+                if next_task:
+                    new_tasks.append(next_task)
+        for t in new_tasks:
+            pet.add_task(t)
