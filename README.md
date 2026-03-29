@@ -2,11 +2,11 @@
 
 You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
 
-## 📸 Demo
+📸 Demo
 
-<a href="/course_images/ai110/pawpal_demo_1.png" target="_blank"><img src='/course_images/ai110/pawpal_demo_1.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+<a href="pawpal_demo_1.png" target="_blank"><img src='pawpal_demo_1.png' title='PawPal App' width='100%' alt='PawPal App' /></a>
 
-<a href="/course_images/ai110/pawpal_demo_2.png" target="_blank"><img src='/course_images/ai110/pawpal_demo_2.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+<a href="pawpal_demo_2.png" target="_blank"><img src='pawpal_demo_2.png' title='PawPal App' width='100%' alt='PawPal App' /></a>
 
 ## Scenario
 
