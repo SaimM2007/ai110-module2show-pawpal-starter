@@ -42,6 +42,33 @@ pip install -r requirements.txt
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
 
+## Testing PawPal+
+
+### Run the tests
+
+```bash
+python -m pytest
+```
+
+### What the tests cover
+
+The test suite has 12 tests across the following behaviors:
+
+- **Task completion**: verifying `mark_complete()` correctly flips the status
+- **Task addition**: confirming adding a task increases the pet's task count
+- **Sorting correctness**: tasks added out of order are returned chronologically by `sort_by_time()` and by urgency via `sort_by_priority()`
+- **Recurrence logic**: marking a daily recurring task complete auto-generates a new task for the following day
+- **Conflict detection**: the scheduler correctly flags tasks at the same or overlapping times, and ignores tasks that are far apart
+- **Edge cases**: pet with no tasks, filtering complete tasks when none exist, filtering by pet ID across multiple pets
+
+### Confidence level
+
+⭐⭐⭐⭐⭐ (5/5)
+
+All core scheduling behaviors are covered including sorting, recurrence, conflict detection, filtering, and edge cases like empty pets and no completed tasks.
+
+---
+
 ## Smarter Scheduling
 
 PawPal+ includes a set of algorithmic features that make task management more intelligent:
